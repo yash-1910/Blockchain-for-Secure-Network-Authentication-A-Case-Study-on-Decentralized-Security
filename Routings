@@ -1,0 +1,136 @@
+ IP Addressing Scheme
+
+| **Component**                  | **Network Address** | **Subnet Mask**    | **Host Address Range**             | **Broadcast Address** |
+|---------------------------------|---------------------|--------------------|-----------------------------------|-----------------------|
+| **Nodes (P2P Network)**         | 192.168.1.0         | 255.255.255.0/24   | 192.168.1.1 to 192.168.1.254     | 192.168.1.255         |
+| **Authentication Servers**     | 192.168.2.0         | 255.255.255.0/24   | 192.168.2.1 to 192.168.2.254     | 192.168.2.255         |
+| **Client Devices (DHCP Pool)** | 192.168.3.0         | 255.255.255.0/24   | 192.168.3.1 to 192.168.3.254     | 192.168.3.255         |
+| **Routers/Switches**            | 192.168.0.0         | 255.255.255.0/24   | 192.168.0.1 to 192.168.0.254     | 192.168.0.255         |
+| **Firewalls**                   | 192.168.4.0         | 255.255.255.0/24   | 192.168.4.1 to 192.168.4.254     | 192.168.4.255         |
+
+Routing Configuration
+
+Overview of Routing Configuration
+The routing configuration in this network is crucial for efficiently and securely directing data packets across different subnets. This ensures seamless communication between nodes, authentication servers, and client devices. Given the decentralized nature of the blockchain-based authentication system, the routing design prioritizes high availability, low latency, and secure data transfer.
+
+Routing Protocols
+To ensure optimal performance and security, the following routing protocols are implemented:
+- **Open Shortest Path First (OSPF)**: OSPF is used as an interior gateway protocol (IGP) due to its fast convergence and ability to support large networks with multiple subnets.
+- **Border Gateway Protocol (BGP)**: If external connectivity is required (e.g., for external blockchain nodes), BGP is used as an exterior gateway protocol (EGP), ensuring secure and efficient data routing to and from the network.
+
+ Static and Dynamic Routes
+- **Static Routes**: Static routes are set up for critical paths, such as between authentication servers and key nodes, to prevent disruptions in communication. For example, direct routes between subnet 192.168.2.x (Authentication Servers) and 192.168.1.x (Nodes) are defined for reliable authentication processing.
+- **Dynamic Routes**: Dynamic routes managed by OSPF enable adaptive path selection between client devices and nodes, supporting load balancing and redundancy.
+
+## 3.4 Security Considerations in Routing
+To enhance security, the following measures are implemented:
+- **Access Control Lists (ACLs)**: Restrict data flow between trusted network segments.
+- **Route Authentication**: MD5 authentication is applied to routing updates to prevent malicious route injections.
+- **Network Address Translation (NAT)**: NAT is used for client devices in the 192.168.3.x subnet to interact with the internet while hiding internal IP addresses, adding an extra layer of privacy.
+
+## 3.5 Sample Routing Table
+A sample routing table would include specific routes for each subnet. Here’s an example for a router within the network:
+
+| **Destination Network** | **Subnet Mask** | **Gateway/Next Hop** | **Interface**    | **Metric** |
+|-------------------------|-----------------|----------------------|------------------|------------|
+| 192.168.1.0             | 255.255.255.0/24 | Direct               | Ethernet 0/0     | 1          |
+| 192.168.2.0             | 255.255.255.0/24 | 192.168.0.1         | Ethernet 0/1     | 10         |
+| 192.168.3.0             | 255.255.255.0/24 | 192.168.0.1         | Ethernet 0/2     | 20         |
+| 0.0.0.0                 | 0.0.0.0         | Internet Gateway     | Ethernet 0/3     | 50         |
+
+Configuration Commands (Example)
+Example commands to configure routing for authentication servers and client devices:
+
+Router(config)# router ospf 10
+Router(config-router)# network 192.168.1.0 0.0.0.255 area 0
+Router(config-router)# network 192.168.2.0 0.0.0.255 area 0
+Router(config-router)# network 192.168.3.0 0.0.0.255 area 1
+Router(config-router)# exit
+
+                                                                           
+ Switch Configuration
+ Overview of Switch Configuration
+Switches are configured to facilitate efficient communication and data handling among connected devices while enhancing security. This section outlines the configuration of trunk ports, port security, and Spanning Tree Protocol (STP) to prevent network congestion and unauthorized access.
+
+Trunk Port Configuration
+Trunk ports allow multiple VLANs to transmit over a single physical link between switches, supporting traffic segregation. 802.1Q encapsulation is applied for VLAN tagging.
+
+Trunk Port Configuration Example:
+Switch(config)# interface gigabitEthernet 1/0/1
+Switch(config-if)# switchport mode trunk
+Switch(config-if)# switchport trunk allowed vlan all
+Switch(config-if)# exit
+Port Security
+Port security restricts unauthorized devices from connecting to switch ports, preventing potential attacks. This is done by limiting MAC addresses on each port and setting up responses to security violations.
+
+Port Security Configuration Example:
+bash
+Copy
+Switch(config)# interface fastEthernet 1/0/2
+Switch(config-if)# switchport mode access
+Switch(config-if)# switchport port-security
+Switch(config-if)# switchport port-security maximum 2
+Switch(config-if)# switchport port-security mac-address sticky
+Switch(config-if)# switchport port-security violation restrict
+Switch(config-if)# exit
+
+       
+Spanning Tree Protocol (STP)
+STP is enabled to prevent network loops by detecting and disabling redundant paths, allowing only one active path between switches.
+
+STP Configuration:
+
+Switch(config)# spanning-tree mode rapid-pvst
+Switch(config)# spanning-tree vlan 10,20,30,40 priority 4096
+VLAN Configuration
+ Overview of VLAN Configuration
+Virtual LANs (VLANs) are employed to logically segment devices based on departments, reducing broadcast traffic and enhancing security. This configuration supports a more organized and efficient network structure, especially critical in a decentralized authentication setup.
+
+VLAN Assignments
+Each VLAN corresponds to a specific department to maintain isolated traffic domains and facilitate better management of network resources.
+
+VLAN 10: Sales & Marketing (192.168.10.0/24)
+VLAN 20: HR and Logistics (192.168.20.0/24)
+VLAN 30: Finance & Accounts (192.168.30.0/24)
+VLAN 40: Admin & Public Relations (192.168.40.0/24)
+
+       
+ VLAN Interface Configuration
+Each VLAN has a specific IP address and subnet mask for Layer 3 routing, enabling inter-VLAN communication through a Layer 3 switch or router.
+
+Sample VLAN Configuration:
+
+Switch(config)# vlan 10
+Switch(config-vlan)# name Sales_Marketing
+Switch(config-vlan)# exit
+Switch(config)# vlan 20
+Switch(config-vlan)# name HR_Logistics
+Switch(config-vlan)# exit
+Switch(config)# vlan 30
+Switch(config-vlan)# name Finance_Accounts
+Switch(config-vlan)# exit
+Switch(config)# vlan 40
+Switch(config-vlan)# name Admin_PR
+Switch(config-vlan)# exit
+Assigning Ports to VLANs
+Ports are assigned to their respective VLANs, allowing devices connected to these ports to communicate within their VLAN domain.
+
+Port Assignment Example:
+
+Switch(config)# interface fastEthernet 1/0/3
+Switch(config-if)# switchport mode access
+Switch(config-if)# switchport access vlan 10
+Switch(config-if)# exit
+Inter-VLAN Routing
+Inter-VLAN routing is configured to allow communication between VLANs, enabling devices in different VLANs to interact securely.
+
+Inter-VLAN Routing Configuration:
+
+Switch(config)# interface vlan 10
+Switch(config-if)# ip address 192.168.10.1 255.255.255.0
+Switch(config)# interface vlan 20
+Switch(config-if)# ip address 192.168.20.1 255.255.255.0
+Switch(config)# interface vlan 30
+Switch(config-if)# ip address 192.168.30.1 255.255.255.0
+Switch(config)# interface vlan 40
+Switch(config-if)# ip address 192.168.40.1 255.255.255.0
